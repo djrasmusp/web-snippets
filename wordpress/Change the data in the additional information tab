@@ -1,0 +1,8 @@
+add_filter('woocommerce_display_product_attributes', function ($attributes, $product){
+	$attributes['weight'] = [
+		'label' => __('Weight', 'woocommerce'),
+		'value' => ( $product->get_weight() - 0.5 )
+	];
+
+	return $attributes;
+}, 10, 2);
