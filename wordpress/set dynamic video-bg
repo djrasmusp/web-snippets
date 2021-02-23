@@ -1,0 +1,12 @@
+add_action( 'wp', function(){
+  
+   add_action( 'elementor/frontend/section/before_render', function ($element) {
+      
+      global $post;
+      $video = get_post_meta($post->ID,'video-url',true);
+      
+      $element->set_settings( 'background_video_link',  $video);
+
+   });
+
+});
