@@ -1,0 +1,64 @@
+function custom_package_rates( $rates, $package ) {
+	
+	global  $woocommerce;
+
+	$total_price = 0;
+	if ( WC()->cart ) { // check cart exists
+            $qty = 0; // init qty
+            foreach (WC()->cart->get_cart() as $cart_item) {
+				
+    			if ( has_term( 'emballageafgift', 'product_cat', $cart_item['product_id'] ) ) {
+        			$qty = $cart_item['quantity'];
+					$price = $cart_item['data']->get_price_including_tax();
+					$product_price_with_quantity = $price*$qty;
+					$total_price += $product_price_with_quantity;
+    			}
+				
+            }
+    }
+
+    $cart_total = (WC()->cart->cart_contents_total+WC()->cart->tax_total)-$total_price;
+
+	$free_shipping = 4375;
+	
+	global $wp_roles;
+	$user_data = get_userdata(get_current_user_id());
+     $user_role_slug = $user_data->roles[0];
+	$data = unserialize( get_option( 'wwp_options_registered_custom_roles' ) );
+
+	$free_shipping_wholesale_value = $data["$user_role_slug"]["desc"]; 
+	
+	if ($free_shipping_wholesale_value > 0 ) {
+		$free_shipping = $free_shipping_wholesale_value;
+	}
+	
+
+    if( $cart_total > $free_shipping ) {
+		
+		$shipping_zone = WC_Shipping_Zones::get_zone_matching_package( $package );
+
+		$zone = $shipping_zone->get_id();
+
+		if($zone == 1) {
+			
+			foreach($rates as $rate_key => $rate_values){
+				$rates[$rate_key]->cost = number_format(0, 2);
+				
+				$taxes = [];
+				
+				foreach($rates[$rate_key]->taxes as $key => $value){
+					if($tax > 0) {
+						$taxes[$key] = number_format(0, 2);
+					}
+				}
+				
+				$rates[$rate_key]->taxes = $taxes;
+			}
+
+		}
+
+    } 
+
+    return $rates;
+} 
+add_filter( 'woocommerce_package_rates', 'custom_package_rates', 10, 2 );
